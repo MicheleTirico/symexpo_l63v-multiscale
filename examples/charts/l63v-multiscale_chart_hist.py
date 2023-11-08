@@ -7,10 +7,10 @@ import seaborn as sns
 
 # paths and parametetes
 prefix="l63v-multiscale"
-scenario=prefix+"_"+"02"
+scenario=prefix+"_"+"03"
 pathOutputDir="outputs/"+scenario+"/"
 pathResources="resources/"
-pathOutputFig=pathOutputDir+"fig_04/"
+pathOutputFig=pathOutputDir+"fig_hist/"
 
 path_trip_sym=pathOutputDir+prefix+"_sym_trips.csv"
 path_trip_mat=pathOutputDir+prefix+"_mat_trips.csv"
@@ -23,7 +23,6 @@ sns.set_style("whitegrid")
 position_color=[2,3,4]
 palette=plt.rcParams['axes.prop_cycle'].by_key()['color']
 
-
 # logger and handleFiles
 # ----------------------------------------------------------------------------------------------------------------------
 hf=handleFiles.HandleFiles(logger=None)
@@ -35,7 +34,8 @@ logger.storeLocal(False)
 cwd=hf.getDefCwd()
 logger.log(cl=None,method=None,message="start create df for symuvia")
 
-run_trip,run_hist_traffic=False,True
+run_trip,run_hist_traffic=True,True
+
 # create charts
 # ----------------------------------------------------------------------------------------------------------------------
 logger.log(cl=None,method=None,message="start create charts hist")
@@ -48,7 +48,7 @@ if run_trip:
     bins=50
     alpha=.5
     quantile=1.0
-    log_scale=True
+    log_scale=False
     list_x_label=['average length trip [m]',"average time trip [s]"]
     list_hist=["td","ttt"]
     for i in range(len(list_hist)):
@@ -71,12 +71,9 @@ if run_hist_traffic:
     print ("---------------------------- traffic")
     df_mat=pd.read_csv(filepath_or_buffer=path_mat_emi,sep=";")
     df_sym=pd.read_csv(filepath_or_buffer=path_sym_emi,sep=";")
-    print (df_mat)
-    print (df_sym)
-    # quit()
     bins=50
-    alpha=.7
-    quantile=0.9
+    alpha=.5
+    quantile=1.0
     log_scale=False
     list_hist=["nVeh","av_sp_kph","td"]
     list_x_label=['number of vehicles [-]',"average speed [KM/h]","total travel distance [m]"]

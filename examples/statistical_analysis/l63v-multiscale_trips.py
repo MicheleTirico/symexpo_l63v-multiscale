@@ -2,6 +2,7 @@ import pandas as pd
 from toolbox.control import logger
 from toolbox.control import handleFiles
 from toolbox.control import tools
+import numpy as np
 
 # paths and parametetes
 prefix="l63v-multiscale"
@@ -28,7 +29,7 @@ logger.storeLocal(False)
 cwd=hf.getDefCwd()
 logger.log(cl=None,method=None,message="start create df for MATSim")
 
-run_df_sym,run_df_mat=True,True
+run_df_sym,run_df_mat,run_df_merged=True,False,True
 
 # create df
 logger.log(cl=None,method=None,message="start create df trips")
@@ -40,7 +41,7 @@ if run_df_sym:
     df_sym["ts"]=df_sym["p"]//900
     df_sym=df_sym[tools.dropValColumns(columns=list(df_sym.columns),listValToDrop=[  'entree',  'instE', 'instS', 'itineraire', 'sortie','lib', 'type', 'vx', 'w', ])]
     df_sym=df_sym.fillna(0)
-
+    df_sym['ttt']=df_sym['ttt'].apply(np.round)
     print (df_sym)
     tools.storeDataframe(logger=logger,pathStore=path_trip_sym,df=df_sym)                                                    # store df
 
@@ -61,3 +62,50 @@ if run_df_mat:
     print (df_mat)
     tools.storeDataframe(logger=logger,pathStore=path_trip_mat,df=df_mat)                                                    # store df
 
+if run_df_merged:
+    logger.log(cl=None,method=None,message="start create df for trip merged")
+    # df_sym=pd.read_csv(filepath_or_buffer=path_traj_sym,sep=";")
+    # df_mat=pd.read_csv(filepath_or_buffer=path_traj_mat,sep=";")
+    df_sym=pd.read_csv(filepath_or_buffer=path_trip_sym,sep=";")
+    df_mat=pd.read_csv(filepath_or_buffer=path_trip_mat,sep=";")
+
+    day=24*60*60
+    ts=4*24
+    df_mat["p"]=df_mat["p"]-df_mat["p"]//day*day
+    df_mat["ts"]=df_mat["ts"]-df_mat["ts"]//ts*ts
+
+    df_mat=df_mat.sort_values(by="p").reset_index()
+    df_sym["id"] = df_sym.index + 1
+    df_mat["id"] = df_mat.index + 1
+    print (df_mat)
+    print (df_sym)
+    df_1=pd.merge(df_sym,df_mat,on=["p","id"],suffixes=('_sym',"_mat"))
+
+    df_1=df_1[tools.dropValColumns(columns=list(df_1.columns),listValToDrop=["Unnamed: 0_sym","Unnamed: 0_mat"])]
+    df_1["delta_td"]=df_1["td_mat"]-df_1["td_sym"]
+    df_1["delta_ttt"]=df_1["ttt_mat"]-df_1["ttt_sym"]
+
+
+    df_1=df_1[df_1["p"]<15000]
+    print (df_1.describe())
+
+
+    # df_sym=pd.read_csv(filepath_or_buffer=path_trip_sym,sep=";")
+    # df_mat=pd.read_csv(filepath_or_buffer=path_trip_mat,sep=";")
+    # df_sym= df_sym.astype({'p':'int'})
+    # df_mat = df_mat.astype({'p':'int'})
+    #
+    # df_mat["p"]=df_mat["p"]- (df_mat["p"]//(60*60*24))*(60*60*24)
+    #
+    # df_sym["id"] = df_sym.index + 1
+    # df_mat["id"] = df_mat.index + 1
+    #
+    # print (df_sym)
+    # print (df_mat)
+    # df_mat=df_mat.sort_values(by="p")
+    # print (df_mat)
+    #
+    # df_1=pd.merge(df_sym,df_mat,on="id",suffixes=('_sym',"_mat"))
+    #
+    # df_1=df_1[tools.dropValColumns(columns=list(df_1.columns),listValToDrop=["Unnamed: 0_sym","Unnamed: 0_mat"])]
+    # print (df_1)
